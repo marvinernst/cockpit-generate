@@ -4,7 +4,6 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-const cockpitConfig = require('../cockpit.config.cjs');
 
 
 dotenv.config();
