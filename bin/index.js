@@ -6,7 +6,7 @@ const path = require('path');
 const dotenv = require('dotenv')
 
 
-dotenv.config({ path: '../../.env' });
+dotenv.config();
 
 const API_KEY = process.env.API_KEY;
 const API_BASE_URL = process.env.API_BASE_URL;
