@@ -9,6 +9,7 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 client.ts
+package-lock.json
 
 # macOS
 .DS_Store
