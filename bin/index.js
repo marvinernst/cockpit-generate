@@ -3,15 +3,17 @@
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const dotenv = require('dotenv')
+const dotenv = require('dotenv');
+const cockpitConfig = require('../cockpit.config.cjs');
 
 
 dotenv.config();
 
-const API_KEY = process.env.API_KEY;
-const API_BASE_URL = process.env.API_BASE_URL;
+const API_KEY = process.env.COCKPIT_API_KEY;
+const API_BASE_URL = process.env.COCKPIT_API_BASE_URL;
 
-const routes = require('../../../cockpit.config.cjs');
+const config_path = path.join(process.cwd(), 'cockpit.config.cjs');
+const routes = require(config_path);
 
 const client = axios.create({
   baseURL: API_BASE_URL,
@@ -41,7 +43,7 @@ const generateModule = async (routes, client) => {
   const types = responses.map( (response, index) => {
     const types = jsonToTypeScript(response.data)
     const typeName = capitalizeFirstLetter(routes[index].name)
-    return  `type ${typeName}=${types};\n\n`
+    return  `export type ${typeName}=${types};\n\n`
   })
 
   const typesFilter = responses.map( (response, index) => {
@@ -60,7 +62,7 @@ const generateModule = async (routes, client) => {
           getAll: async (filter?:${typeName}Filter) => {
             if (filter) {
               const { data } = await api.get<${typeName}[]>("stationen");
-              return getAll(data, filter);
+              return getAll(data, filter) as ${typeName}[];
             }
               const {data} = await api.get<${typeName}[]>('${route.path}');
               return data;
@@ -76,12 +78,9 @@ const generateModule = async (routes, client) => {
   }, {});
   fileData += types.join(' ');
   fileData += typesFilter.join(' ');
-  fileData += `const client = {`
+  fileData += `export const client = {`
   fileData += functions.join(' ');
   fileData += `}`
-  fileData +=   `
-    export default client;
-  `;
   return fileData;
 };
 function capitalizeFirstLetter(string) {
