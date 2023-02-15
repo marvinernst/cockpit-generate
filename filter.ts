@@ -1,4 +1,4 @@
-module.exports = function getAll(data: any, options: any) {
+export default function getAll(data: any, options: any) {
   const { where } = options;
   const filteredData = data.filter((item: any) => {
     // Iterate over the properties in the where object
@@ -28,4 +28,4 @@ module.exports = function getAll(data: any, options: any) {
     return true;
   });
   return filteredData;
-};
+}

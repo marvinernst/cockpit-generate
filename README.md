@@ -47,7 +47,7 @@ During the genertation process the script will fetch data from the provides rout
 To use it import the generated client file to yout project make some calls to yout api.
 
 ```
-import client from "cockpit-generate";
+import {client} from "cockpit-generate/client";
 
 const allItems = await client.tours.getAll():
 const singleItem = await client.tours.get('aslkdjlaslkasdöksölakdlöklö') // ID of the item
