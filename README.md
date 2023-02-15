@@ -18,7 +18,7 @@ COCKPIT_API_BASE_URL=https://cms.cockpit.me/api/content/item
 
 
 Now add a config file in the root of your project and add the routes to yout api endpoint
-````
+```
 //cockpit.config.cjs
 module.exports =  [
   {
