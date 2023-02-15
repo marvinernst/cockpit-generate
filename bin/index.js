@@ -26,7 +26,7 @@ const generateModule = async (routes, client) => {
 
   let fileData = `
   import axios from 'axios';
-  const getAll = require("./filter");
+  import getAll from "./filter";
   const api = axios.create({
     baseURL: '${API_BASE_URL}s',
     headers: {
