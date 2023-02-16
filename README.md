@@ -15,20 +15,19 @@ npm install cockpit-generate
 Add yout API-URL and password to your .env file.
 ```
 COCKPIT_API_KEY=USR-ddad43036e48261a66asdkljksadl7971626494a2
-COCKPIT_API_BASE_URL=https://cms.cockpit.me/api/content/item
+COCKPIT_API_URL=https://cms.cockpit.com
 ```
-
 
 Now add a config file in the root of your project and add the routes to yout api endpoint
 ```
 //cockpit.config.cjs
 module.exports =  [
   {
-    path: "tour",
+    type: "collection",
     name: "tours",
   },
   {
-    path: "stations",
+    type: "collection",
     name: "stations",
   },
 ];
