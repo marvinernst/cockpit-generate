@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
@@ -9,44 +8,39 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const API_KEY = process.env.COCKPIT_API_KEY;
-const API_BASE_URL = process.env.COCKPIT_API_BASE_URL;
+const API_BASE_URL = process.env.COCKPIT_API_URL;
 
 const config_path = path.join(process.cwd(), 'cockpit.config.cjs');
 const routes = require(config_path);
 
-const client = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'api-key': `${API_KEY}`
-  }
-});
 
+const  headers = {
+  "api-key": "USR-ddad43036e48261a66927f6440027971626494a2",
+};
 
-const generateModule = async (routes, client) => {
+const generateModule = async () => {
 
   let fileData = `
-  import axios from 'axios';
-  import getAll from "./filter";
-  const api = axios.create({
-    baseURL: '${API_BASE_URL}s',
-    headers: {
-      'api-key': '${API_KEY}'
-    }
-  });
-
+    import getAll from "./filter";
+    const  headers = ${JSON.stringify(headers)};
   `;
-  const promises  =  routes.map( (route) => {
-    return client.get(route.path);
-  })
-  const responses = await Promise.all(promises);
+
+  const responses = await Promise.all( routes.map( async (route) => {
+    const res = await fetch(`${API_BASE_URL}/api/content/item/${route.name}`, {
+      type: 'GET',
+      headers
+    })
+    return res.json();
+  }));
+
   const types = responses.map( (response, index) => {
-    const types = jsonToTypeScript(response.data)
+    const types = jsonToTypeScript(response)
     const typeName = capitalizeFirstLetter(routes[index].name)
     return  `export type ${typeName}=${types};\n\n`
   })
 
   const typesFilter = responses.map( (response, index) => {
-    const types = jsonToTypeScript(response.data, true)
+    const types = jsonToTypeScript(response, true)
     const typeName = capitalizeFirstLetter(routes[index].name)
     return  `type ${typeName}Filter={
       where:${types}
@@ -59,16 +53,21 @@ const generateModule = async (routes, client) => {
     const wuffel = `
         ${route.name} : {
           getAll: async (filter?:${typeName}Filter) => {
+            const res = await fetch('${API_BASE_URL}/api/content/items/${route.name}', {
+              headers,
+            });
+            const data = await res.json();
             if (filter) {
-              const { data } = await api.get<${typeName}[]>("stationen");
               return getAll(data, filter) as ${typeName}[];
             }
-              const {data} = await api.get<${typeName}[]>('${route.path}');
-              return data;
+            return data as ${typeName}[];
           },
           get: async (id:string) => {
-            const {data} = await api.get<${typeName}[]>('${route.path}/'+id);
-            return data;
+            const res = await fetch('${API_BASE_URL}/api/content/item/${route.name}/'+id, {
+              headers,
+            });
+            const data = await res.json();
+            return data as ${typeName};
           }
         },
     `;
@@ -110,7 +109,7 @@ function jsonToTypeScript(json, optional) {
 
 
 const baum = async () => {
-  const data = await generateModule(routes, client);
+  const data = await generateModule();
   const filePath = path.join(__dirname, '../client.ts');
   fs.writeFileSync(filePath, data);
   console.log(`Generated API module at ${filePath}`);

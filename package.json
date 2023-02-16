@@ -1,6 +1,6 @@
 {
   "name": "cockpit-generate",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Gernerator for a typesafe cockpit cms js-client",
   "bin": "bin/index.js",
   "scripts": {

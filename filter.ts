@@ -1,5 +1,6 @@
 export default function getAll(data: any, options: any) {
   const { where } = options;
+  console.log(data, where);
   const filteredData = data.filter((item: any) => {
     // Iterate over the properties in the where object
     for (const prop in where) {
