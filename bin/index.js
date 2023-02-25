@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 
-
+const {exec} = require('child_process');
 dotenv.config();
 
 const API_KEY = process.env.COCKPIT_API_KEY;
@@ -76,9 +76,10 @@ const generateModule = async () => {
   }, {});
   fileData += types.join(' ');
   fileData += typesFilter.join(' ');
-  fileData += `export const client = {`
+  fileData += ` const client = {`
   fileData += functions.join(' ');
-  fileData += `}`
+  fileData += `};\n`
+  fileData += `export default client`
   return fileData;
 };
 function capitalizeFirstLetter(string) {
@@ -113,6 +114,9 @@ const baum = async () => {
   const filePath = path.join(__dirname, '../client.ts');
   fs.writeFileSync(filePath, data);
   console.log(`Generated API module at ${filePath}`);
+   exec('tsc', () => {
+    exec('rm '+ filePath);
+  });
 }
 
 baum();
