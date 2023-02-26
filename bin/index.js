@@ -112,10 +112,12 @@ function jsonToTypeScript(json, optional) {
 const baum = async () => {
   const data = await generateModule();
   const filePath = path.join(__dirname, '../client.ts');
-  fs.writeFileSync(filePath, data);
-  console.log(`Generated API module at ${filePath}`);
-   exec('tsc', () => {
-    exec('rm '+ filePath);
+  fs.writeFile(filePath, data, () => {
+    console.log(`Generated API module at ${filePath}`);
+    exec(`tsc`, (e) => {
+
+      exec('rm '+ filePath);
+    });
   });
 }
 
