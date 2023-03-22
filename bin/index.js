@@ -13,6 +13,7 @@ const API_BASE_URL = process.env.COCKPIT_API_URL;
 const config_path = path.join(process.cwd(), 'cockpit.config.cjs');
 const routes = require(config_path);
 
+console.log(API_BASE_URL);
 
 const  headers = {
   "api-key": API_KEY,
