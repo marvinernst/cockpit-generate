@@ -15,3 +15,6 @@ package-lock.json
 .DS_Store
 .env
 cockpit.config.cjs
+client.d.ts
+client.js
+filter.js

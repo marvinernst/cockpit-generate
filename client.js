@@ -10,44 +10,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const filter_1 = require("./filter");
-const headers = { "api-key": "USR-ddad43036e48261a66927f6440027971626494a2" };
-const client = {
-    tour: {
+const headers = { "api-key": "6ccda160ab7f2a091ef159761bfc1b" };
+const client = { mitarbeiter: {
         getAll: (filter) => __awaiter(void 0, void 0, void 0, function* () {
-            const res = yield fetch('https://cms.ernsthaft.me/api/content/items/tour', {
+            const res = yield fetch('https://cms.cognitio.de/api/collections/get/mitarbeiter?token=6ccda160ab7f2a091ef159761bfc1b', {
                 headers,
             });
             const data = yield res.json();
             if (filter) {
-                return (0, filter_1.default)(data, filter);
+                return (0, filter_1.default)(data.entries, filter);
             }
-            return data;
+            return data.entries;
         }),
         get: (id) => __awaiter(void 0, void 0, void 0, function* () {
-            const res = yield fetch('https://cms.ernsthaft.me/api/content/item/tour/' + id, {
+            const res = yield fetch('https://cms.cognitio.de/api/collections/get/mitarbeiter?token=6ccda160ab7f2a091ef159761bfc1b&filter[_id]=' + id, {
                 headers,
             });
             const data = yield res.json();
-            return data;
-        })
-    },
-    stationen: {
-        getAll: (filter) => __awaiter(void 0, void 0, void 0, function* () {
-            const res = yield fetch('https://cms.ernsthaft.me/api/content/items/stationen', {
-                headers,
-            });
-            const data = yield res.json();
-            if (filter) {
-                return (0, filter_1.default)(data, filter);
+            const realData = data.entries[0];
+            if (realData.image) {
+                const urlForAsset = 'https://cms.cognitio.de/api/cockpit/assets/?token=6ccda160ab7f2a091ef159761bfc1b&filter[_id]=' + realData.image._id;
+                const assetRes = yield fetch(urlForAsset);
+                const { assets } = yield assetRes.json();
+                realData.image = assets[0];
             }
-            return data;
-        }),
-        get: (id) => __awaiter(void 0, void 0, void 0, function* () {
-            const res = yield fetch('https://cms.ernsthaft.me/api/content/item/stationen/' + id, {
-                headers,
-            });
-            const data = yield res.json();
-            return data;
+            return realData;
         })
     },
 };
