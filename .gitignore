@@ -10,7 +10,7 @@ npm-debug.*
 *.orig.*
 client.ts
 package-lock.json
-
+test
 # macOS
 .DS_Store
 .env

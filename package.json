@@ -1,9 +1,10 @@
 {
   "name": "cockpit-generate",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Gernerator for a typesafe cockpit cms js-client",
   "bin": "bin/index.js",
   "scripts": {
+    "compile": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

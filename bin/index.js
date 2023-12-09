@@ -13,24 +13,56 @@ const API_BASE_URL = process.env.COCKPIT_API_URL;
 const config_path = path.join(process.cwd(), 'cockpit.config.cjs');
 const routes = require(config_path);
 
-console.log(API_BASE_URL);
 
-const  headers = {
-  "api-key": API_KEY,
-};
 
 const generateModule = async () => {
 
   let fileData = `
-    import getAll from "./filter";
-    const  headers = ${JSON.stringify(headers)};
+    function getAll(data: any, options: any) {
+      const { where } = options;
+      const filteredData = data.filter((item: any) => {
+        // Iterate over the properties in the where object
+        for (const prop in where) {
+          if (where.hasOwnProperty(prop)) {
+            // Check if the property is a nested object
+            if (typeof where[prop] === "object") {
+              for (const nestedProp in where[prop]) {
+                if (where[prop].hasOwnProperty(nestedProp)) {
+                  // Check if the nested property matches the item value
+                  if (
+                    item[prop] &&
+                    item[prop][nestedProp] !== where[prop][nestedProp]
+                  ) {
+                    return false;
+                  }
+                }
+              }
+            } else {
+              // Check if the property matches the item value
+              if (item[prop] !== where[prop]) {
+                return false;
+              }
+            }
+          }
+        }
+        return true;
+      });
+      return filteredData;
+    }
+
+
+    const  headers = {
+      "api-key": process.env.COCKPIT_API_KEY,
+    };
   `;
 
   const responses = await Promise.all( routes.map( async (route) => {
     const url = `${API_BASE_URL}/api/collections/get/${route.name}?token=${API_KEY}`;
     const res = await fetch(url, {
       type: 'GET',
-      headers
+      headers: {
+        "api-key": process.env.COCKPIT_API_KEY,
+      }
     })
     const data = await res.json();
     return data.entries[0];
@@ -56,9 +88,9 @@ const generateModule = async () => {
 
     if(1 === 1) {
 
-      const wuffel = ` ${route.name} : {
+      const getAllFunction = ` ${route.name} : {
           getAll: async (filter?:${typeName}Filter) => {
-            const res = await fetch('${API_BASE_URL}/api/collections/get/${route.name}?token=${API_KEY}', {
+            const res = await fetch(process.env.COCKPIT_API_URL + '/api/collections/get/${route.name}?token=' + process.env.COCKPIT_API_KEY, {
               headers,
             });
             const data = await res.json();
@@ -68,13 +100,13 @@ const generateModule = async () => {
             return data.entries as ${typeName}[];
           },
           get: async (id:string) => {
-            const res = await fetch('${API_BASE_URL}/api/collections/get/${route.name}?token=${API_KEY}&filter[_id]='+id, {
+            const res = await fetch(process.env.COCKPIT_API_URL + '/api/collections/get/${route.name}?token='+process.env.COCKPIT_API_KEY+'&filter[_id]='+id, {
               headers,
             });
             const data = await res.json();
             const realData = data.entries[0];
-            if(realData.image) {
-              const urlForAsset =  '${API_BASE_URL}/api/cockpit/assets/?token=${API_KEY}&filter[_id]='+realData.image._id;
+            if(realData?.image) {
+              const urlForAsset =  process.env.COCKPIT_API_URL + '/api/cockpit/assets/?token='+process.env.COCKPIT_API_KEY+'&filter[_id]='+realData.image._id;
               const assetRes = await fetch(urlForAsset);
               const {assets} = await assetRes.json();
                realData.image = assets[0];
@@ -84,14 +116,14 @@ const generateModule = async () => {
         },
         `
 
-        return wuffel;
+        return getAllFunction;
     }
 
 
-    const wuffel = `
+    const getAllFunction = `
         ${route.name} : {
           getAll: async (filter?:${typeName}Filter) => {
-            const res = await fetch('${API_BASE_URL}/api/content/items/${route.name}', {
+            const res = await fetch(process.env.COCKPIT_API_URL + '/api/content/items/${route.name}', {
               headers,
             });
             const data = await res.json();
@@ -101,7 +133,7 @@ const generateModule = async () => {
             return data as ${typeName}[];
           },
           get: async (id:string) => {
-            const res = await fetch('${API_BASE_URL}/api/content/item/${route.name}/'+id, {
+            const res = await fetch(process.env.COCKPIT_API_URL + '/api/content/item/${route.name}/'+id, {
               headers,
             });
             const data = await res.json();
@@ -110,7 +142,7 @@ const generateModule = async () => {
         },
     `;
 
-    return wuffel;
+    return getAllFunction;
   }, {});
   fileData += types.join(' ');
   fileData += typesFilter.join(' ');
@@ -148,21 +180,35 @@ function jsonToTypeScript(json, optional) {
 
 
 
-const baum = async () => {
+const generateClient = async () => {
   const data = await generateModule();
-  const filePath = path.join(__dirname, '../client.ts');
+  const folderPath = path.join(process.cwd(), '.cockpit');
+  try {
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+  const filePath = path.join(folderPath, 'client.ts');
   fs.writeFile(filePath, data, () => {
-    exec(`cd ${__dirname} && cd .. && tsc`, (e) => {
-
-      console.log(e)
-      setTimeout(() => {
-        console.log(`Generated API module at ${filePath}`);
-
-        exec('rm '+ filePath);
-      }, 2000)
+    exec(`npx tsc ${filePath} --declaration `, (e) => {
+      console.log("🚀 ~ Generated API module at :", filePath.replace('.ts', '.js'))
+      exec('rm '+ filePath);
     });
   });
 }
 
-baum();
+
+ // Validate .env variables
+if(!process.env.COCKPIT_API_URL) {
+  console.error('❗ Oops Woops! ❗ COCKPIT_API_URL missing in your .env file. Declare it and retry. 🔍🌐 #EnvVarReminder');
+  return
+}
+
+if(!process.env.COCKPIT_API_KEY) {
+  console.log('❗ Oops! ❗ COCKPIT_API_KEY missing in your .env file. Declare it and retry. 🔍🔑 #EnvVarReminder')
+  return;
+}
+generateClient();
 

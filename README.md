@@ -1,11 +1,11 @@
 ## What is cockpit-generate?
 
-Cockpit-generate is a tool for generation of a typesafe javascript client to use with Cockpit CMS.  
+cockpit-generate is a tool for generation of a typesafe javascript client to use with Cockpit CMS.  
 
 
 
 ## Getting started
-The fastest way to get started with Prisma is by following the **Quickstart**.
+The fastest way to get started with cockpit-generate is by following the **Quickstart**.
 
 Add cockpit-generate to yout project.
 ```
@@ -46,9 +46,14 @@ During the genertation process the script will fetch data from the provides rout
 To use it import the generated client file to yout project make some calls to yout api.
 
 ```
-import {client} from "cockpit-generate/client";
+import client from "./.cockpit/client";
 
 const allItems = await client.tours.getAll():
-const singleItem = await client.tours.get('aslkdjlaslkasdöksölakdlöklö') // ID of the item
+const allItemsFiltered = await client.tours.getAll({
+  where: {
+    keyToLookFor: "valueToLookFor",
+  }
+}):
+const singleItem = await client.tours.get('itemID')
 ```
 All the response data will have types and autocomplete.
